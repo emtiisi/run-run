@@ -3,35 +3,47 @@ import * as THREE from 'three';
 export class Player {
     constructor(game) {
         this.game = game;
-        // Humanoid Group
+        // Alien Bot Group
         this.mesh = new THREE.Group();
 
         // Materials
-        const skinMat = new THREE.MeshStandardMaterial({ color: 0xffccaa, roughness: 0.5 });
-        const suitMat = new THREE.MeshStandardMaterial({ color: 0x00ffff, emissive: 0x002222 });
+        const metalMat = new THREE.MeshStandardMaterial({ color: 0x888888, roughness: 0.3, metalness: 0.8 });
+        const visorMat = new THREE.MeshStandardMaterial({ color: 0xff0000, emissive: 0xff0000, emissiveIntensity: 2.0 });
 
         // Head
-        const headGeo = new THREE.BoxGeometry(0.4, 0.4, 0.4);
-        this.head = new THREE.Mesh(headGeo, skinMat);
+        const headGeo = new THREE.BoxGeometry(0.5, 0.4, 0.5);
+        this.head = new THREE.Mesh(headGeo, metalMat);
         this.head.position.y = 1.4;
 
+        // Visor (Eye)
+        const visorGeo = new THREE.BoxGeometry(0.4, 0.1, 0.1);
+        const visor = new THREE.Mesh(visorGeo, visorMat);
+        visor.position.set(0, 0, 0.21); // Front of face
+        this.head.add(visor);
+
+        // Antenna
+        const antGeo = new THREE.CylinderGeometry(0.02, 0.02, 0.3);
+        const antenna = new THREE.Mesh(antGeo, metalMat);
+        antenna.position.set(0, 0.35, 0);
+        this.head.add(antenna);
+
         // Torso
-        const bodyGeo = new THREE.BoxGeometry(0.5, 0.6, 0.3);
-        this.body = new THREE.Mesh(bodyGeo, suitMat);
+        const bodyGeo = new THREE.CylinderGeometry(0.2, 0.1, 0.6, 8);
+        this.body = new THREE.Mesh(bodyGeo, metalMat);
         this.body.position.y = 0.9;
 
-        // Arms (Simple)
-        const armGeo = new THREE.BoxGeometry(0.15, 0.6, 0.15);
-        this.leftArm = new THREE.Mesh(armGeo, suitMat);
+        // Arms
+        const armGeo = new THREE.BoxGeometry(0.12, 0.6, 0.12);
+        this.leftArm = new THREE.Mesh(armGeo, metalMat);
         this.leftArm.position.set(-0.35, 0.9, 0);
-        this.rightArm = new THREE.Mesh(armGeo, suitMat);
+        this.rightArm = new THREE.Mesh(armGeo, metalMat);
         this.rightArm.position.set(0.35, 0.9, 0);
 
         // Legs
-        const legGeo = new THREE.BoxGeometry(0.2, 0.7, 0.2);
-        this.leftLeg = new THREE.Mesh(legGeo, suitMat);
+        const legGeo = new THREE.BoxGeometry(0.15, 0.7, 0.15);
+        this.leftLeg = new THREE.Mesh(legGeo, metalMat);
         this.leftLeg.position.set(-0.15, 0.35, 0);
-        this.rightLeg = new THREE.Mesh(legGeo, suitMat);
+        this.rightLeg = new THREE.Mesh(legGeo, metalMat);
         this.rightLeg.position.set(0.15, 0.35, 0);
 
         this.mesh.add(this.head);
@@ -41,7 +53,7 @@ export class Player {
         this.mesh.add(this.leftLeg);
         this.mesh.add(this.rightLeg);
 
-        this.mesh.position.y = 0; // Pivot at feet (roughly)
+        this.mesh.position.y = 0;
         this.mesh.scale.set(0.6, 0.6, 0.6);
         this.game.scene.add(this.mesh);
 

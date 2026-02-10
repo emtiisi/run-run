@@ -5,14 +5,14 @@ export class PowerupManager {
         this.game = game;
         this.powerups = [];
         this.spawnTimer = 0;
-        this.spawnInterval = 8.0; // Less frequent than obstacles
+        this.spawnInterval = 12.0; // Less frequent than obstacles
     }
 
     reset() {
         this.powerups.forEach(p => this.game.scene.remove(p.mesh));
         this.powerups = [];
         this.spawnTimer = 0;
-        this.spawnInterval = 8.0;
+        this.spawnInterval = 12.0;
     }
 
     spawn() {
@@ -20,13 +20,29 @@ export class PowerupManager {
         const lane = lanes[Math.floor(Math.random() * lanes.length)];
         const type = Math.random() > 0.5 ? 'SHIELD' : 'BOOST';
 
-        let geometry, material;
+        const starShape = new THREE.Shape();
+        const outerRadius = 0.5;
+        const innerRadius = 0.25;
+        const points = 5;
+
+        for (let i = 0; i < points * 2; i++) {
+            const angle = (i * Math.PI) / points;
+            const radius = i % 2 === 0 ? outerRadius : innerRadius;
+            const x = Math.cos(angle) * radius;
+            const y = Math.sin(angle) * radius;
+            if (i === 0) starShape.moveTo(x, y);
+            else starShape.lineTo(x, y);
+        }
+        starShape.closePath();
+
+        const geometry = new THREE.ExtrudeGeometry(starShape, { depth: 0.2, bevelEnabled: false });
+        geometry.center(); // Center the pivot
+
+        let material;
         if (type === 'SHIELD') {
-            geometry = new THREE.SphereGeometry(0.5, 16, 16);
-            material = new THREE.MeshStandardMaterial({ color: 0x0000ff, emissive: 0x0000aa }); // Blue
+            material = new THREE.MeshStandardMaterial({ color: 0x0088ff, emissive: 0x0044aa, metalness: 0.5, roughness: 0.2 }); // Blue Star
         } else {
-            geometry = new THREE.ConeGeometry(0.4, 1, 4);
-            material = new THREE.MeshStandardMaterial({ color: 0xffff00, emissive: 0xaaaa00 }); // Yellow
+            material = new THREE.MeshStandardMaterial({ color: 0xffcc00, emissive: 0xffaa00, metalness: 0.5, roughness: 0.2 }); // Gold Star
         }
 
         const mesh = new THREE.Mesh(geometry, material);

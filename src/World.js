@@ -26,6 +26,11 @@ export class World {
 
         this.speed = 10;
         this.distance = 0;
+        this.highScore = parseInt(localStorage.getItem('neonRunnerHighScore') || '0', 10);
+
+        // Show high score on load
+        const hsEl = document.getElementById('highscore');
+        if (hsEl) hsEl.innerText = 'Best: ' + this.highScore;
     }
 
     reset() {
@@ -33,6 +38,14 @@ export class World {
         this.distance = 0;
         this.grid.position.z = 0;
         if (this.stars) this.stars.position.z = 0;
+    }
+
+    saveHighScore() {
+        const currentScore = Math.floor(this.distance);
+        if (currentScore > this.highScore) {
+            this.highScore = currentScore;
+            localStorage.setItem('neonRunnerHighScore', String(this.highScore));
+        }
     }
 
     update(delta, speedOverride) {
@@ -58,6 +71,14 @@ export class World {
 
         // Update Score UI
         const scoreEl = document.getElementById('score');
-        if (scoreEl) scoreEl.innerText = 'Score: ' + Math.floor(this.distance);
+        if (scoreEl) scoreEl.innerText = Math.floor(this.distance);
+
+        // Update High Score UI live
+        const hsEl = document.getElementById('highscore');
+        const current = Math.floor(this.distance);
+        if (current > this.highScore) {
+            this.highScore = current;
+        }
+        if (hsEl) hsEl.innerText = 'Best: ' + this.highScore;
     }
 }
