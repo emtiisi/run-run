@@ -164,12 +164,12 @@ export class Game {
                             child.material.color.setHex(0xaaaaaa);
                         }
                     });
-                    this.shieldTimer = 5.0; // Reuse timer logic? Need to add specific timer handling or reuse boostTimer logic
+                    this.shieldTimer = 10.0; // 10 Seconds
                     // Let's add independent timer handling in updatePowerups
-                    console.log("GHOST MODE!");
+                    console.log("GHOST MODE! (10s)");
                 } else if (hitPowerup.type === 'BOOST') { // BLAST
                     this.boostActive = true;
-                    this.boostTimer = 5.0;
+                    this.boostTimer = 10.0;
                     // Visual: Orange/Red
                     this.player.mesh.traverse((child) => {
                         if (child.isMesh) {
@@ -179,7 +179,7 @@ export class Game {
                             child.material.opacity = 1.0;
                         }
                     });
-                    console.log("BLASTER MODE!");
+                    console.log("BLASTER MODE! (10s)");
                 }
             }
         }
