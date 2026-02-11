@@ -5,14 +5,14 @@ export class PowerupManager {
         this.game = game;
         this.powerups = [];
         this.spawnTimer = 0;
-        this.spawnInterval = 12.0; // Less frequent than obstacles
+        this.spawnInterval = 30.0; // Less frequent than obstacles
     }
 
     reset() {
         this.powerups.forEach(p => this.game.scene.remove(p.mesh));
         this.powerups = [];
         this.spawnTimer = 0;
-        this.spawnInterval = 12.0;
+        this.spawnInterval = 30.0;
     }
 
     spawn() {
@@ -52,12 +52,15 @@ export class PowerupManager {
         this.powerups.push({ mesh, type, active: true });
     }
 
+    startCooldown() {
+        this.spawnTimer = 0;
+    }
+
     update(delta, speed) {
         this.spawnTimer += delta;
         if (this.spawnTimer > this.spawnInterval) {
             this.spawn();
             this.spawnTimer = 0;
-            this.spawnInterval = Math.max(2.0, 60 / speed);
         }
 
         for (let i = this.powerups.length - 1; i >= 0; i--) {

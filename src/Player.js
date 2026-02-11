@@ -118,7 +118,6 @@ export class Player {
 
     onTouchEnd(e) {
         if (!this.game.isRunning) {
-            // Tap to start/restart
             this.game.start();
             return;
         }
@@ -126,9 +125,14 @@ export class Player {
         if (e.changedTouches.length > 0) {
             const dx = e.changedTouches[0].clientX - this.touchStartX;
             const dy = e.changedTouches[0].clientY - this.touchStartY;
+            const absDx = Math.abs(dx);
+            const absDy = Math.abs(dy);
 
-            if (Math.abs(dx) > Math.abs(dy) && Math.abs(dx) > this.swipeThreshold) {
-                // Horizontal swipe
+            if (absDy > 20 && absDy > absDx && dy < 0 && !this.isJumping) {
+                // Swipe up = jump (priority)
+                this.jump();
+            } else if (absDx > 30 && absDx > absDy) {
+                // Horizontal swipe = lane change
                 if (dx > 0 && this.lane < 1) {
                     this.lane++;
                     if (this.game.sound) this.game.sound.playLaneSwitch();
@@ -136,8 +140,8 @@ export class Player {
                     this.lane--;
                     if (this.game.sound) this.game.sound.playLaneSwitch();
                 }
-            } else if (dy < -this.swipeThreshold && !this.isJumping) {
-                // Swipe up = jump
+            } else if (absDx < 10 && absDy < 10 && !this.isJumping) {
+                // Tap (no swipe) = jump
                 this.jump();
             }
         }

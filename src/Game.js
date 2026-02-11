@@ -252,6 +252,7 @@ export class Game {
                 // Only one power-up active at a time
                 this.deactivateAllPowerups();
                 this.sound.playPowerup();
+                this.powerupManager.startCooldown(); // 30s before next spawn
 
                 if (hitPowerup === 'SHIELD') {
                     this.shieldActive = true;
