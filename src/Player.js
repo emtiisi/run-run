@@ -18,7 +18,7 @@ export class Player {
         // Visor (Eye)
         const visorGeo = new THREE.BoxGeometry(0.4, 0.1, 0.1);
         const visor = new THREE.Mesh(visorGeo, visorMat);
-        visor.position.set(0, 0, 0.21); // Front of face
+        visor.position.set(0, 0, 0.21);
         this.head.add(visor);
 
         // Antenna
@@ -57,44 +57,127 @@ export class Player {
         this.mesh.scale.set(0.6, 0.6, 0.6);
         this.game.scene.add(this.mesh);
 
-        this.lane = 0; // -1, 0, 1
-        this.laneWidth = 3.0; // Distance between lanes
+        this.lane = 0;
+        this.laneWidth = 3.0;
 
+        // Jump state
+        this.isJumping = false;
+        this.jumpVelocity = 0;
+        this.jumpHeight = 0;
+        this.gravity = -20;
+        this.jumpForce = 8;
+
+        // Touch controls
+        this.touchStartX = 0;
+        this.touchStartY = 0;
+        this.swipeThreshold = 40;
+
+        // Input listeners
         window.addEventListener('keydown', (e) => this.onKeyDown(e));
+
+        // Touch events
+        window.addEventListener('touchstart', (e) => this.onTouchStart(e), { passive: false });
+        window.addEventListener('touchend', (e) => this.onTouchEnd(e), { passive: false });
     }
 
     reset() {
         this.lane = 0;
         this.mesh.position.x = 0;
+        this.mesh.position.y = 0;
+        this.isJumping = false;
+        this.jumpVelocity = 0;
+        this.jumpHeight = 0;
     }
 
     onKeyDown(e) {
         if (!this.game.isRunning) return;
 
         if (e.key === 'ArrowLeft' || e.key === 'a') {
-            if (this.lane > -1) this.lane--;
+            if (this.lane > -1) {
+                this.lane--;
+                if (this.game.sound) this.game.sound.playLaneSwitch();
+            }
         }
         if (e.key === 'ArrowRight' || e.key === 'd') {
-            if (this.lane < 1) this.lane++;
+            if (this.lane < 1) {
+                this.lane++;
+                if (this.game.sound) this.game.sound.playLaneSwitch();
+            }
+        }
+        if ((e.key === 'ArrowUp' || e.key === 'w' || e.code === 'Space') && !this.isJumping && this.game.isRunning) {
+            this.jump();
         }
     }
 
+    onTouchStart(e) {
+        if (e.touches.length > 0) {
+            this.touchStartX = e.touches[0].clientX;
+            this.touchStartY = e.touches[0].clientY;
+        }
+    }
+
+    onTouchEnd(e) {
+        if (!this.game.isRunning) {
+            // Tap to start/restart
+            this.game.start();
+            return;
+        }
+
+        if (e.changedTouches.length > 0) {
+            const dx = e.changedTouches[0].clientX - this.touchStartX;
+            const dy = e.changedTouches[0].clientY - this.touchStartY;
+
+            if (Math.abs(dx) > Math.abs(dy) && Math.abs(dx) > this.swipeThreshold) {
+                // Horizontal swipe
+                if (dx > 0 && this.lane < 1) {
+                    this.lane++;
+                    if (this.game.sound) this.game.sound.playLaneSwitch();
+                } else if (dx < 0 && this.lane > -1) {
+                    this.lane--;
+                    if (this.game.sound) this.game.sound.playLaneSwitch();
+                }
+            } else if (dy < -this.swipeThreshold && !this.isJumping) {
+                // Swipe up = jump
+                this.jump();
+            }
+        }
+    }
+
+    jump() {
+        this.isJumping = true;
+        this.jumpVelocity = this.jumpForce;
+        if (this.game.sound) this.game.sound.playJump();
+    }
+
     update(delta) {
-        // Lerp to target lane position
+        // Lane movement
         const targetX = this.lane * this.laneWidth;
-        // Simple lerp: current + (target - current) * factor
         const speed = 15;
         this.mesh.position.x += (targetX - this.mesh.position.x) * speed * delta;
 
+        // Jump physics
+        if (this.isJumping) {
+            this.jumpVelocity += this.gravity * delta;
+            this.jumpHeight += this.jumpVelocity * delta;
+
+            if (this.jumpHeight <= 0) {
+                this.jumpHeight = 0;
+                this.isJumping = false;
+                this.jumpVelocity = 0;
+            }
+        }
+        this.mesh.position.y = this.jumpHeight;
+
         // Slight tilt when moving lanes
         this.mesh.rotation.z = -(this.mesh.position.x - targetX) * 0.1;
-        this.mesh.rotation.y = Math.PI; // Face forward always
+        this.mesh.rotation.y = Math.PI;
 
-        // Running Animation
+        // Running Animation (slower when jumping)
         const time = Date.now() * 0.015;
-        this.leftLeg.rotation.x = Math.sin(time) * 0.5;
-        this.rightLeg.rotation.x = Math.sin(time + Math.PI) * 0.5;
-        this.leftArm.rotation.x = Math.sin(time + Math.PI) * 0.5;
-        this.rightArm.rotation.x = Math.sin(time) * 0.5;
+        const animScale = this.isJumping ? 0.1 : 0.5;
+        this.leftLeg.rotation.x = Math.sin(time) * animScale;
+        this.rightLeg.rotation.x = Math.sin(time + Math.PI) * animScale;
+        this.leftArm.rotation.x = Math.sin(time + Math.PI) * animScale;
+        this.rightArm.rotation.x = Math.sin(time) * animScale;
     }
 }

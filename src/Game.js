@@ -3,6 +3,7 @@ import { Player } from './Player.js';
 import { World } from './World.js';
 import { ObstacleManager } from './ObstacleManager.js';
 import { PowerupManager } from './PowerupManager.js';
+import { SoundManager } from './SoundManager.js';
 
 export class Game {
     constructor() {
@@ -24,6 +25,7 @@ export class Game {
         this.shieldTimer = 0;
         this.invincibleTimer = 0;
         this.debris = [];
+        this.sound = new SoundManager();
     }
 
     init() {
@@ -59,6 +61,9 @@ export class Game {
         document.getElementById('start-screen').style.display = 'none';
         document.getElementById('game-over-screen').style.display = 'none';
 
+        this.sound.init();
+        this.sound.startBGM();
+
         this.player.reset();
         this.world.reset();
         this.obstacleManager.reset();
@@ -78,6 +83,8 @@ export class Game {
 
     gameOver() {
         this.isRunning = false;
+        this.sound.playDeath();
+        this.sound.stopBGM();
         this.world.saveHighScore();
         const finalScore = Math.floor(this.world.distance);
         document.getElementById('game-over-screen').style.display = 'block';
@@ -234,6 +241,7 @@ export class Game {
                 } else if (this.boostActive) {
                     this.explodeObstacle(hitObstacle);
                     this.obstacleManager.removeObstacle(hitObstacle);
+                    this.sound.playExplosion();
                 } else {
                     this.gameOver();
                 }
@@ -243,6 +251,7 @@ export class Game {
             if (hitPowerup) {
                 // Only one power-up active at a time
                 this.deactivateAllPowerups();
+                this.sound.playPowerup();
 
                 if (hitPowerup === 'SHIELD') {
                     this.shieldActive = true;
